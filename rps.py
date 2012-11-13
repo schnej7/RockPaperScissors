@@ -123,7 +123,7 @@ else:
 
     g1 =  m1.predict( cur1 ) 
     g2 =  m2.predict( cur2 ) 
-    g3 =  m3.predict( cur3 ) 
+    g3 =  beats( beats (m3.predict( cur3 ) ) )
     g4 =  m4.predict( cur4 ) 
     freq[ g1 ] += float( a1 ) / float( turn )
     freq[ g2 ] += float( a2 ) / float( turn )
