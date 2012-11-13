@@ -9,9 +9,13 @@ def beats( a ):
         return 'R'
 
 choices = list(['R','P','S'] )
-depth = 3
+depth1 = 3
+depth2 = 5
+depth3 = 2
 
-class bayes:
+max_depth = max( list( [ depth1, depth2, depth3 ] ) )
+
+class marcov:
     def __init__( self ):
         self.hist_probs = dict()
 
@@ -24,7 +28,7 @@ class bayes:
         else:
             self.hist_probs[prev][cur] += 1
 
-    def predict( self, prev ):
+    def predict( self, cur ):
         if cur not in self.hist_probs.keys():
             return random.choice( choices )
         else:
@@ -32,23 +36,72 @@ class bayes:
 
 
 if input == '':
-    bayes1 = bayes()
-    turn = 0
+    m1 = marcov()
+    m2 = marcov()
+    m3 = marcov()
     output = 'R'
-    in_hist = list( ['x'] * depth )
-    out_hist = list( ['x'] * (depth) ) + ['R']
+    in_hist = list( ['x'] * max_depth )
+    out_hist = list( ['x'] * (max_depth) ) + ['R']
 
 else:
-    depth_end = len( in_hist ) - ( 1 )
-    depth_begin = len( in_hist ) - ( depth + 1 )
-    prev = str( in_hist[ depth_begin:depth_end ] ) + str( out_hist[ depth_begin:depth_end ] )
-
-    cur_end = len( in_hist )
-    cur_begin = len( in_hist ) - ( depth )
-    cur = str( in_hist[ cur_begin:cur_end ] ) + str( out_hist[ cur_begin:cur_end ] )
-
-    turn += 1
+    #record the last move
     in_hist += list( input )
-    bayes1.record( prev, input )
-    output = beats( bayes1.predict( cur ) )
+
+    #train
+
+    #m1
+    depth_end1 = len( in_hist ) - ( 1 )
+    depth_begin1 = len( in_hist ) - ( depth1 + 1 )
+    prev1 = str( in_hist[ depth_begin1:depth_end1 ] ) + str( out_hist[ depth_begin1:depth_end1 ] )
+
+    cur_end1 = len( in_hist )
+    cur_begin1 = len( in_hist ) - ( depth1 )
+    cur1 = str( in_hist[ cur_begin1:cur_end1 ] ) + str( out_hist[ cur_begin1:cur_end1 ] )
+
+    m1.record( prev1, input )
+
+    #m2
+    depth_end2 = len( in_hist ) - ( 1 )
+    depth_begin2 = len( in_hist ) - ( depth2 + 1 )
+    prev2 = str( in_hist[ depth_begin2:depth_end2 ] )
+
+    cur_end2 = len( in_hist )
+    cur_begin2 = len( in_hist ) - ( depth2 )
+    cur2 = str( in_hist[ cur_begin2:cur_end2 ] )
+
+    m2.record( prev2, input )
+
+    #m3
+    depth_end3 = len( in_hist ) - ( 1 )
+    depth_begin3 = len( in_hist ) - ( depth3 + 1 )
+    prev3 = str( in_hist[ depth_begin3:depth_end3 ] ) + str( out_hist[ depth_begin3:depth_end3 ] )
+
+    cur_end3 = len( in_hist )
+    cur_begin3 = len( in_hist ) - ( depth3 )
+    cur3 = str( in_hist[ cur_begin3:cur_end3 ] ) + str( out_hist[ cur_begin3:cur_end3 ] )
+
+    m3.record( prev3, input )
+
+    #guess
+
+    #boost on all marcov chains
+    freq = dict()
+    for choice in choices:
+        freq[choice] = 0
+    freq[ m1.predict( cur1 ) ] += 1
+    freq[ m2.predict( cur2 ) ] += 1
+    freq[ m3.predict( cur3 ) ] += 1
+    max_freq = max(freq.iterkeys(), key=lambda k: freq[k])
+    max_freq_val = freq[ max_freq ]
+    ties = 0
+    for key in freq.keys():
+        if freq[key] == max_freq_val:
+            ties += 1
+    if ties > 1:
+        #if there is a tie then use the best chain
+        output = beats( m1.predict( cur1 ) )
+    else:
+        output = beats( max_freq )
+
+    #record guess
     out_hist += list( output )
