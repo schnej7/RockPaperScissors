@@ -1,6 +1,4 @@
 import random
-import numpy as np
-import matplotlib.pyplot as plt
 
 def beats( a ):
     if a == 'R':
@@ -68,11 +66,6 @@ class bootstrap:
 
     def plot( self ):
         print sum( self.guess_hist ) / float( len( self.guess_hist ) )
-        plt.plot( self.good_hist )
-        plt.legend( map( int, range( num_algos + 1 ) ) )
-        plt.show()
-
-
 
 class marcov:
     def __init__( self ):
