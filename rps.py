@@ -11,14 +11,16 @@ def beats( a ):
         return 'R'
 
 choices = list(['R','P','S'] )
-num_algos = 5
+num_algos = 7
 depth1 = 1
 depth2 = 4
 depth3 = 4
 depth4 = 2
 depth5 = 3
+depth6 = 1
+depth7 = 4
 
-max_depth = max( list( [ depth1, depth2, depth3 ] ) )
+max_depth = max( list( [ depth1, depth2, depth3, depth4, depth5, depth6, depth7 ] ) )
 
 class bootstrap:
     def __init__( self, num ):
@@ -100,6 +102,8 @@ if input == '':
     m3 = marcov()
     m4 = marcov()
     m5 = marcov()
+    m6 = marcov()
+    m7 = marcov()
     output = 'R'
     in_hist = list( ['x'] * max_depth )
     out_hist = list( ['x'] * (max_depth) ) + ['R']
@@ -175,6 +179,30 @@ else:
 
     m5.record( prev5, out_hist[-1] )
     guesses[4] = beats( m5.predict( cur5 ) )
+
+    #m6
+    depth_end6 = len( in_hist ) - ( 1 )
+    depth_begin6 = len( in_hist ) - ( depth6 + 1 )
+    prev6 = str( in_hist[ depth_begin6:depth_end6 ] ) + str( out_hist[ depth_begin6:depth_end6 ] )
+
+    cur_end6 = len( in_hist )
+    cur_begin6 = len( in_hist ) - ( depth6 )
+    cur6 = str( in_hist[ cur_begin6:cur_end6 ] ) + str( out_hist[ cur_begin6:cur_end6 ] )
+
+    m6.record( prev6, out_hist[-1] )
+    guesses[5] = beats( m6.predict( cur6 ) )
+
+    #m7
+    depth_end7 = len( in_hist ) - ( 1 )
+    depth_begin7 = len( in_hist ) - ( depth7 + 1 )
+    prev7 = str( in_hist[ depth_begin7:depth_end7 ] )
+
+    cur_end7 = len( in_hist )
+    cur_begin7 = len( in_hist ) - ( depth7 )
+    cur7 = str( in_hist[ cur_begin7:cur_end7 ] )
+
+    m7.record( prev7, out_hist[-1])
+    guesses[6] = beats( m7.predict( cur7 ) )
 
     #guess
 
