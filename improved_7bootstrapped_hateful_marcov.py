@@ -1,6 +1,4 @@
 import random
-import numpy as np
-import matplotlib.pyplot as plt
 
 def beats( a ):
     if a == 'R':
@@ -93,16 +91,6 @@ class bootstrap:
 
     def plot( self ):
         n = 0
-        for i in range( len(self.quality_history[0]) ):
-            n2 = n
-            if i == num_algos:
-                n = 0
-                n2 = 255
-            c = '#%.2X%.2X00' % (255-n2, n)
-            plt.plot( [self.quality_history[a][i] for a in range( len(self.quality_history) )], color=c )
-            n += 255 / len( self.quality_history[0] )
-        plt.legend( range( len( self.quality_history ) ) )
-        plt.show()
 
 class marcov:
     def __init__( self ):
