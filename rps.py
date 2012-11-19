@@ -1,4 +1,5 @@
 import random
+import math
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -22,6 +23,45 @@ depth7 = 4
 history = 300
 
 max_depth = max( list( [ depth1, depth2, depth3, depth4, depth5, depth6, depth7 ] ) )
+
+class knn:
+    def __init__( self, a_k ):
+        self.k = a_k
+        self.d = []
+
+    def update( self, a_point, a_class ):
+        self.d.append( (a_point, a_class) )
+        if len( self.d ) > history:
+            self.d.pop(0)
+
+    def predict( self, a_point ):
+        nearest = []
+        for (point, _class) in self.d:
+            if len(nearest) < self.k:
+                nearest.append( (point, _class, self.distance( a_point, point) ) )
+                nearest = sorted( nearest, key=lambda dist: dist[2] )
+            else:
+                dis = self.distance( a_point, point )
+                for i in range( self.k ):
+                    if nearest[i][2] > dis:
+                        nearest.insert( i, (point, _class, dis ) )
+                        nearest.pop()
+                        break
+
+        freq = dict()
+        for x in nearest:
+            if x[1] not in freq.keys():
+                freq[x[1]] = 1
+            else:
+                freq[x[1]] =+ 1
+
+        return freq
+
+    def distance( self, a, b ):
+        dis = float( 0 )
+        for i in range( len( a ) ):
+            dis += (float(a[i]) - float(b[i])) ** 2
+        return math.sqrt( dis )
 
 class bootstrap:
     def __init__( self, num ):
@@ -82,14 +122,17 @@ class bootstrap:
 
         #If no algorithm knows, then just guess
         if not legit_guess:
-            return random.choice( choices )
+            return { 'R': float(1)/float(3), 'P': float(1)/float(3), 'S': float(1)/float(3) }
+
         max_freq = max(freq.iterkeys(), key=lambda k: freq[k])
         sum_freq = sum( freq.values() )
         max_freq_val = freq[ max_freq ]
+        self.prev[ num_algos ] = max_freq
         if sum_freq > 0:
             self.guess_hist.append( max_freq_val / sum_freq )
-        self.prev[ num_algos ] = max_freq
-        return beats( self.prev[ num_algos ] )
+            for key in freq.keys():
+                freq[key] /= sum_freq
+        return freq
 
     def plot( self ):
         n = 0
@@ -127,6 +170,7 @@ class marcov:
 if input == '':
     turn = 0
     boot = bootstrap( num_algos )
+    KNN = knn( 10 )
     m1 = marcov()
     m2 = marcov()
     m3 = marcov()
@@ -137,6 +181,7 @@ if input == '':
     output = 'R'
     in_hist = list( ['x'] * max_depth )
     out_hist = list( ['x'] * (max_depth) ) + ['R']
+    prev_probs =  { 'R': float(1)/float(3), 'P': float(1)/float(3), 'S': float(1)/float(3) }
 
 else:
     turn += 1
@@ -238,7 +283,34 @@ else:
 
     #boost on all marcov chains
     boot.update( input )
-    output = boot.predict( guesses )
+    probs = boot.predict( guesses )
+
+    templist = []
+    for choice in choices:
+        templist.append( prev_probs[choice] )
+
+    if turn > 50:
+        KNN.update( templist, input )
+
+    if turn > 100:
+        templist = []
+        for choice in choices:
+            templist.append( probs[choice] )
+        adjust = KNN.predict( templist )
+
+        for choice in choices:
+            if choice not in probs.keys() and choice not in adjust.keys():
+                probs[choice] = 0
+            elif choice not in probs.keys():
+                probs[choice] = adjust[choice] / 2.0
+            elif choice not in adjust.keys():
+                probs[choice] /= 2.0
+            else:
+                probs[choice] = ( probs[choice] + adjust[choice] ) / 2.0
+
+    output = beats( max(probs.iterkeys(), key=lambda k: probs[k]) )
+
+    prev_probs = probs
 
     #record guess
     out_hist += list( output )
