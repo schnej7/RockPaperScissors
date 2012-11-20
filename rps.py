@@ -31,7 +31,7 @@ class knn:
 
     def update( self, a_point, a_class ):
         self.d.append( (a_point, a_class) )
-        if len( self.d ) > history:
+        if len( self.d ) > history / 6:
             self.d.pop(0)
 
     def predict( self, a_point ):
